@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Entrar · {{ APP_NAME }}{% endblock %}
+{% block body_class %}login-body{% endblock %}
+{% block shell %}
+<main class="login">
+  <section class="login-field" aria-hidden="true">
+    <img src="/static/field.svg" alt="">
+  </section>
+  <section class="login-panel">
+    <img src="/static/mark.svg" alt="" width="40" height="40">
+    <h1>{{ APP_NAME }}</h1>
+    <p class="lede">Exames de campimetria visual dos pacientes da clínica.</p>
+    {% for f in flashes %}<div class="flash flash-{{ f.kind }}">{{ f.msg }}</div>{% endfor %}
+    {% if error %}<div class="flash flash-error" role="alert">{{ error }}</div>{% endif %}
+    <form method="post" action="/login" class="stack">
+      <input type="hidden" name="csrf_token" value="{{ csrf }}">
+      <input type="hidden" name="next" value="{{ next }}">
+      <label>Usuário
+        <input name="username" value="{{ username or '' }}" autocomplete="username" autocapitalize="none" required autofocus>
+      </label>
+      <label>Senha
+        <input name="password" type="password" autocomplete="current-password" required>
+      </label>
+      <button class="btn btn-primary" type="submit">Entrar</button>
+    </form>
+  </section>
+</main>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Auditoria · {{ APP_NAME }}{% endblock %}
+{% block content %}
+<div class="pagehead"><h1>Auditoria</h1></div>
+<p class="lede">Registro de acessos e alterações: entradas no sistema, importações, visualizações, downloads e exclusões.</p>
+<form class="search" method="get" role="search">
+  <input type="search" name="q" value="{{ q }}" placeholder="Usuário, ação ou exame" aria-label="Filtrar auditoria">
+  <button class="btn" type="submit">Filtrar</button>
+</form>
+<div class="tablewrap">
+<table class="table compact">
+  <thead><tr><th>Quando</th><th>Usuário</th><th>Ação</th><th>Alvo</th><th>Detalhe</th><th>IP</th></tr></thead>
+  <tbody>
+  {% for r in rows %}
+  <tr>
+    <td>{{ r.at.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+    <td>{{ r.username or '—' }}</td>
+    <td>{{ r.action|replace('_', ' ') }}</td>
+    <td>
+      {% if r.target and r.target.startswith('exame:') %}<a href="/exames/{{ r.target[6:] }}">{{ r.target }}</a>
+      {% elif r.target and r.target.startswith('paciente:') %}<a href="/pacientes/{{ r.target[9:] }}">{{ r.target }}</a>
+      {% else %}{{ r.target or '' }}{% endif %}
+    </td>
+    <td class="wrap">{{ r.detail or '' }}</td>
+    <td>{{ r.ip or '' }}</td>
+  </tr>
+  {% else %}
+  <tr><td colspan="6" class="muted">Nenhum registro.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+<nav class="pager">
+  {% if page > 1 %}<a class="btn" href="?q={{ q|urlencode }}&page={{ page - 1 }}">Mais recentes</a>{% endif %}
+  {% if has_more %}<a class="btn" href="?q={{ q|urlencode }}&page={{ page + 1 }}">Mais antigos</a>{% endif %}
+</nav>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}{{ p.name }} — {{ e.eye or 'exame' }} {{ e.exam_datetime|d }} · {{ APP_NAME }}{% endblock %}
+{% block body_class %}exam-body{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="/">Pacientes</a> / <a href="/pacientes/{{ p.id }}">{{ p.name }}</a></p>
+<div class="exam">
+  <aside class="exam-side">
+    <h1><span class="eye eye-{{ (e.eye or 'na')|lower }}">{{ e.eye or '?' }}</span> {{ e.eye_label }}</h1>
+    <p class="facts"><span>{{ e.exam_datetime|dt }}</span></p>
+
+    {% if e.pdf_status == 'ok' %}
+    <div class="stack-tight">
+      <button class="btn btn-primary" type="button" data-print-frame="pdfframe">Imprimir</button>
+      <a class="btn" href="/exames/{{ e.id }}/pdf?download=1">Baixar PDF</a>
+      <a class="btn" href="/exames/{{ e.id }}/pdf" target="_blank" rel="noopener">Abrir em nova aba</a>
+    </div>
+    {% endif %}
+
+    {% for s in siblings %}
+    <a class="sibling" href="/exames/{{ s.id }}">
+      <span class="eye eye-{{ (s.eye or 'na')|lower }}">{{ s.eye or '?' }}</span>
+      Ver {{ s.eye_label|lower }} do mesmo dia
+    </a>
+    {% endfor %}
+
+    {% set flags = e.reliability_flags %}
+    {% if flags %}
+    <div class="flash flash-warn">
+      Confiabilidade baixa: {{ flags|join('; ') }}.
+    </div>
+    {% endif %}
+
+    <dl class="meta">
+      <dt>Paciente</dt><dd><a href="/pacientes/{{ p.id }}">{{ p.name }}</a></dd>
+      <dt>Nascimento</dt><dd>{{ p.birth_date|d }}</dd>
+      <dt>Idade no exame</dt><dd>{{ e.age_at_exam if e.age_at_exam is not none else '—' }}</dd>
+      <dt>Programa</dt><dd>{{ e.program or '—' }}</dd>
+      <dt>Estratégia</dt><dd>{{ e.strategy or '—' }}</dd>
+      <dt>MD</dt><dd>{{ e.md|num }}</dd>
+      <dt>PSD</dt><dd>{{ e.psd|num }}</dd>
+      <dt>Perda de fixação</dt><dd>{{ e.fixation_loss or '—' }}</dd>
+      <dt>Falso positivo</dt><dd>{{ e.false_positive or '—' }}</dd>
+      <dt>Falso negativo</dt><dd>{{ e.false_negative or '—' }}</dd>
+      <dt>Responsável</dt><dd>{{ e.responsible or '—' }}</dd>
+      <dt>Clínica</dt><dd>{{ e.clinic or '—' }}</dd>
+      <dt>Arquivo</dt><dd class="wrap">{{ e.original_filename }}</dd>
+      <dt>Importado</dt><dd>{{ e.created_at|dt }}{% if e.uploaded_by %} por {{ e.uploaded_by.username }}{% endif %}</dd>
+    </dl>
+
+    <div class="stack-tight secondary">
+      <a class="linkbtn" href="/exames/{{ e.id }}/qrp">Baixar QRP original</a>
+      <form method="post" action="/exames/{{ e.id }}/reconverter">
+        <input type="hidden" name="csrf_token" value="{{ csrf }}">
+        <button class="linkbtn" type="submit">Gerar o PDF novamente</button>
+      </form>
+      {% if user.is_admin %}
+      <form method="post" action="/exames/{{ e.id }}/excluir" data-confirm="Excluir este exame? Os arquivos QRP e PDF serão apagados.">
+        <input type="hidden" name="csrf_token" value="{{ csrf }}">
+        <button class="linkbtn danger-text" type="submit">Excluir exame</button>
+      </form>
+      {% endif %}
+    </div>
+  </aside>
+
+  <section class="exam-doc">
+    {% if e.pdf_status == 'ok' %}
+    <iframe id="pdfframe" src="/exames/{{ e.id }}/pdf" title="Laudo do exame em PDF"></iframe>
+    {% else %}
+    <div class="empty">
+      <p>O PDF deste exame não foi gerado.</p>
+      {% if e.pdf_error %}<p class="muted small wrap">{{ e.pdf_error }}</p>{% endif %}
+      <form method="post" action="/exames/{{ e.id }}/reconverter">
+        <input type="hidden" name="csrf_token" value="{{ csrf }}">
+        <button class="btn btn-primary" type="submit">Gerar o PDF novamente</button>
+      </form>
+    </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>{% block title %}{{ APP_NAME }}{% endblock %}</title>
+  <link rel="icon" href="/static/mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body class="{% block body_class %}{% endblock %}" data-csrf="{{ csrf }}">
+{% block shell %}
+<header class="topbar">
+  <a class="brand" href="/">
+    <img src="/static/mark.svg" alt="" width="26" height="26">
+    <span>{{ APP_NAME }}</span>
+  </a>
+  {% if user %}
+  <nav class="mainnav" aria-label="Principal">
+    {% set path = request.url.path %}
+    <a href="/" {% if path == '/' or path.startswith('/pacientes') or path.startswith('/exames') %}aria-current="page"{% endif %}>Pacientes</a>
+    <a href="/importar" {% if path == '/importar' %}aria-current="page"{% endif %}>Importar exames</a>
+    {% if user.is_admin %}
+    <a href="/usuarios" {% if path.startswith('/usuarios') %}aria-current="page"{% endif %}>Usuários</a>
+    <a href="/auditoria" {% if path == '/auditoria' %}aria-current="page"{% endif %}>Auditoria</a>
+    {% endif %}
+  </nav>
+  <div class="usermenu">
+    <a href="/conta/senha" title="Alterar senha">{{ user.full_name or user.username }}</a>
+    <form method="post" action="/logout">
+      <input type="hidden" name="csrf_token" value="{{ csrf }}">
+      <button class="linkbtn" type="submit">Sair</button>
+    </form>
+  </div>
+  {% endif %}
+</header>
+<main class="page">
+  {% for f in flashes %}
+  <div class="flash flash-{{ f.kind }}" role="status">{{ f.msg }}</div>
+  {% endfor %}
+  {% block content %}{% endblock %}
+</main>
+{% endblock %}
+</body>
+</html>

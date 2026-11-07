@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Pacientes · {{ APP_NAME }}{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <h1>Pacientes</h1>
+  <a class="btn btn-primary" href="/importar">Importar exames</a>
+</div>
+
+<form class="search" method="get" action="/" role="search">
+  <input type="search" name="q" value="{{ q }}" placeholder="Nome ou data de nascimento (dd/mm/aaaa)" aria-label="Buscar paciente">
+  <button class="btn" type="submit">Buscar</button>
+  {% if q %}<a class="linkbtn" href="/">Limpar</a>{% endif %}
+</form>
+
+{% if rows %}
+<p class="muted small">{{ total }} paciente{{ 's' if total != 1 }}{% if q %} encontrado{{ 's' if total != 1 }} para “{{ q }}”{% endif %}</p>
+<div class="tablewrap">
+<table class="table">
+  <thead><tr><th>Nome</th><th>Nascimento</th><th class="num">Idade</th><th class="num">Exames</th><th>Último exame</th></tr></thead>
+  <tbody>
+  {% for p, n, last in rows %}
+    <tr class="rowlink">
+      <td><a href="/pacientes/{{ p.id }}">{{ p.name }}</a></td>
+      <td>{{ p.birth_date|d }}</td>
+      <td class="num">{{ p.age_on() if p.birth_date else '—' }}</td>
+      <td class="num">{{ n }}</td>
+      <td>{{ last|dt }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% if pages > 1 %}
+<nav class="pager" aria-label="Páginas">
+  {% if page > 1 %}<a class="btn" href="?q={{ q|urlencode }}&page={{ page - 1 }}">Anterior</a>{% endif %}
+  <span class="muted">Página {{ page }} de {{ pages }}</span>
+  {% if page < pages %}<a class="btn" href="?q={{ q|urlencode }}&page={{ page + 1 }}">Próxima</a>{% endif %}
+</nav>
+{% endif %}
+{% elif q %}
+<div class="empty">
+  <p>Nenhum paciente encontrado para “{{ q }}”.</p>
+  <p class="muted">Confira a grafia ou busque só pelo sobrenome.</p>
+</div>
+{% else %}
+<div class="empty">
+  <p>Ainda não há pacientes cadastrados.</p>
+  <p class="muted">Importe os arquivos .QRP do perímetro: o cadastro do paciente é criado a partir dos dados do exame.</p>
+  <a class="btn btn-primary" href="/importar">Importar exames</a>
+</div>
+{% endif %}
+{% endblock %}

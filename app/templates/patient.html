@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}{{ p.name }} · {{ APP_NAME }}{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="/">Pacientes</a></p>
+<div class="pagehead">
+  <div>
+    <h1>{{ p.name }}</h1>
+    <p class="facts">
+      <span>Nascimento {{ p.birth_date|d }}</span>
+      {% if p.birth_date %}<span>{{ p.age_on() }} anos</span>{% endif %}
+      <span>{{ p.exams|length }} exame{{ 's' if p.exams|length != 1 }}</span>
+    </p>
+  </div>
+  <div class="actions">
+    <a class="btn" href="/pacientes/{{ p.id }}/editar">Editar cadastro</a>
+    <a class="btn btn-primary" href="/importar">Importar exames</a>
+  </div>
+</div>
+
+{% if p.notes %}<div class="notes">{{ p.notes }}</div>{% endif %}
+
+{% if groups %}
+{% for day, exams in groups.items() %}
+<section class="day">
+  <h2>{{ day }}</h2>
+  <div class="tablewrap">
+  <table class="table exams">
+    <thead><tr>
+      <th>Olho</th><th>Hora</th><th>Programa</th><th class="num">MD</th><th class="num">PSD</th>
+      <th>Confiabilidade</th><th>Responsável</th><th><span class="sr">Ações</span></th>
+    </tr></thead>
+    <tbody>
+    {% for e in exams %}
+      <tr>
+        <td><span class="eye eye-{{ (e.eye or 'na')|lower }}" title="{{ e.eye_label }}">{{ e.eye or '?' }}</span></td>
+        <td>{{ e.exam_datetime.strftime('%H:%M') if e.exam_datetime else '—' }}</td>
+        <td>{{ e.program or '—' }}<span class="muted small block">{{ e.strategy or '' }}</span></td>
+        <td class="num">{{ e.md|num }}</td>
+        <td class="num">{{ e.psd|num }}</td>
+        <td>
+          {% set flags = e.reliability_flags %}
+          <span class="rel {{ 'rel-warn' if flags }}" title="{{ flags|join('; ') if flags else 'Dentro dos limites usuais' }}">
+            <span>Fix. {{ e.fixation_loss or '—' }}</span><span>FP {{ e.false_positive or '—' }}</span><span>FN {{ e.false_negative or '—' }}</span>
+          </span>
+        </td>
+        <td>{{ e.responsible or '—' }}</td>
+        <td class="rowactions">
+          {% if e.pdf_status == 'ok' %}
+          <a class="btn btn-small btn-primary" href="/exames/{{ e.id }}">Visualizar</a>
+          <a class="btn btn-small" href="/exames/{{ e.id }}/pdf?download=1">Baixar</a>
+          <button class="btn btn-small" type="button" data-print="/exames/{{ e.id }}/pdf">Imprimir</button>
+          {% else %}
+          <a class="btn btn-small btn-warn" href="/exames/{{ e.id }}">PDF indisponível</a>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+{% endfor %}
+{% else %}
+<div class="empty">
+  <p>Este paciente não tem exames.</p>
+  <a class="btn btn-primary" href="/importar">Importar exames</a>
+</div>
+{% endif %}
+
+{% if user.is_admin %}
+<details class="danger">
+  <summary>Excluir paciente</summary>
+  <p>Remove o cadastro e todos os {{ p.exams|length }} exame(s), incluindo os arquivos QRP e PDF. Não dá para desfazer.</p>
+  <form method="post" action="/pacientes/{{ p.id }}/excluir" data-confirm="Excluir {{ p.name }} e todos os exames?">
+    <input type="hidden" name="csrf_token" value="{{ csrf }}">
+    <button class="btn btn-danger" type="submit">Excluir paciente e exames</button>
+  </form>
+</details>
+{% endif %}
+{% endblock %}

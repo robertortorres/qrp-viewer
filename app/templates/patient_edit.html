@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Editar {{ p.name }} · {{ APP_NAME }}{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="/">Pacientes</a> / <a href="/pacientes/{{ p.id }}">{{ p.name }}</a></p>
+<div class="pagehead"><h1>Editar cadastro</h1></div>
+{% if error %}<div class="flash flash-error" role="alert">{{ error }}</div>{% endif %}
+<form method="post" class="stack narrow">
+  <input type="hidden" name="csrf_token" value="{{ csrf }}">
+  <label>Nome
+    <input name="name" value="{{ form.name }}" required maxlength="200">
+  </label>
+  <label>Data de nascimento
+    <input name="birth_date" type="date" value="{{ form.birth_date }}">
+  </label>
+  <label>Observações
+    <textarea name="notes" rows="4">{{ form.notes }}</textarea>
+  </label>
+  {% if conflict %}
+  <div class="flash flash-warn">
+    Já existe o cadastro <a href="/pacientes/{{ conflict.id }}">{{ conflict.name }}</a>, nascido em {{ conflict.birth_date|d }}, com {{ conflict.exams|length }} exame(s).
+    {% if user.is_admin %}
+    <label class="check"><input type="checkbox" name="merge" value="1"> Unir os dois cadastros: os exames deste paciente vão para o cadastro existente e este é apagado.</label>
+    {% else %}
+    Peça a um administrador para unir os cadastros.
+    {% endif %}
+  </div>
+  {% endif %}
+  <p class="muted small">Ao importar novos exames, o paciente é reconhecido pelo nome e data de nascimento escritos no arquivo QRP. Se você corrigir o nome aqui, exames futuros com a grafia antiga criarão um cadastro separado, que pode ser unido depois.</p>
+  <div class="actions">
+    <button class="btn btn-primary" type="submit">Salvar cadastro</button>
+    <a class="btn" href="/pacientes/{{ p.id }}">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

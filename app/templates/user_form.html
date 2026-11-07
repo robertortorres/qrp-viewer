@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Editar ' ~ u.username if u else 'Novo usuário' }} · {{ APP_NAME }}{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="/usuarios">Usuários</a></p>
+<div class="pagehead"><h1>{{ 'Editar ' ~ u.username if u else 'Novo usuário' }}</h1></div>
+{% if error %}<div class="flash flash-error" role="alert">{{ error }}</div>{% endif %}
+<form method="post" class="stack narrow" autocomplete="off">
+  <input type="hidden" name="csrf_token" value="{{ csrf }}">
+  {% if not u %}
+  <label>Usuário
+    <input name="username" value="{{ form.username or '' }}" required pattern="[a-zA-Z0-9._\-]{3,64}" autocapitalize="none">
+    <span class="hint">Usado para entrar. Letras, números, ponto, hífen ou sublinhado.</span>
+  </label>
+  {% endif %}
+  <label>Nome completo
+    <input name="full_name" value="{{ form.full_name or '' }}" maxlength="160">
+  </label>
+  <label>{{ 'Nova senha' if u else 'Senha inicial' }}
+    <input name="password" type="password" autocomplete="new-password" minlength="8" {{ 'required' if not u }}>
+    <span class="hint">{{ 'Deixe em branco para manter a atual. ' if u }}O usuário vai definir uma senha própria no próximo acesso.</span>
+  </label>
+  <label class="check"><input type="checkbox" name="is_admin" value="1" {{ 'checked' if form.is_admin }}> Administrador</label>
+  {% if u %}
+  <label class="check"><input type="checkbox" name="is_active" value="1" {{ 'checked' if form.is_active }}> Ativo (pode entrar no sistema)</label>
+  {% endif %}
+  <div class="actions">
+    <button class="btn btn-primary" type="submit">{{ 'Salvar usuário' if u else 'Criar usuário' }}</button>
+    <a class="btn" href="/usuarios">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

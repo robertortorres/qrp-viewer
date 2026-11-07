@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Usuários · {{ APP_NAME }}{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <h1>Usuários</h1>
+  <a class="btn btn-primary" href="/usuarios/novo">Novo usuário</a>
+</div>
+<div class="tablewrap">
+<table class="table">
+  <thead><tr><th>Usuário</th><th>Nome</th><th>Perfil</th><th>Situação</th><th>Último acesso</th><th><span class="sr">Ações</span></th></tr></thead>
+  <tbody>
+  {% for u in users %}
+  <tr class="{{ 'inactive' if not u.is_active }}">
+    <td>{{ u.username }}</td>
+    <td>{{ u.full_name or '—' }}</td>
+    <td>{{ 'Administrador' if u.is_admin else 'Usuário' }}</td>
+    <td>
+      {% if not u.is_active %}Desativado
+      {% elif u.must_change_password %}Aguardando troca de senha
+      {% else %}Ativo{% endif %}
+    </td>
+    <td>{{ u.last_login_at|dt }}</td>
+    <td class="rowactions"><a class="btn btn-small" href="/usuarios/{{ u.id }}">Editar</a></td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+<p class="muted small">Administradores gerenciam usuários, excluem exames e pacientes e consultam a auditoria. Usuários importam, visualizam e imprimem exames.</p>
+{% endblock %}

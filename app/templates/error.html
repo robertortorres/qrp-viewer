@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Erro {{ status }} · {{ APP_NAME }}{% endblock %}
+{% block content %}
+<div class="empty">
+  <p class="bigcode">{{ status }}</p>
+  <p>{{ detail }}</p>
+  <a class="btn" href="/">Ir para pacientes</a>
+</div>
+{% endblock %}

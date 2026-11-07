@@ -1,0 +1,47 @@
+services:
+  app:
+    build: .
+    image: ghcr.io/robertortorres/qrp-viewer:latest
+    container_name: qrp-viewer
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-qrp}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-qrp}
+    volumes:
+      - qrp_data:/data
+    ports:
+      # Exposto só no host; o Nginx Proxy Manager encaminha para cá.
+      # Se o NPM estiver na mesma rede Docker, remova "ports" e use a rede "proxy" abaixo.
+      - "${APP_BIND:-127.0.0.1}:${APP_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [internal]
+
+  db:
+    image: postgres:16-alpine
+    container_name: qrp-viewer-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-qrp}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-qrp}
+    volumes:
+      - qrp_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks: [internal]
+
+volumes:
+  qrp_data:
+  qrp_pg:
+
+networks:
+  internal:
+  # Para usar a rede do NPM, descomente e adicione "proxy" em app.networks:
+  # proxy:
+  #   external: true
+  #   name: npm_default

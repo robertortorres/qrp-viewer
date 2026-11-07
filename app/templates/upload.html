@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Importar exames · {{ APP_NAME }}{% endblock %}
+{% block content %}
+<div class="pagehead"><h1>Importar exames</h1></div>
+<p class="lede">Envie os arquivos .QRP gerados pelo perímetro. O paciente é identificado pelo nome e pela data de nascimento do exame: se já existir, o exame entra no cadastro dele; se não, um cadastro novo é criado.</p>
+
+<form id="uploadform" class="dropzone" method="post" action="/importar" enctype="multipart/form-data">
+  <input type="hidden" name="csrf_token" value="{{ csrf }}">
+  <input id="files" type="file" name="files" accept=".qrp,.QRP" multiple required>
+  <label for="files" class="dropzone-label">
+    <strong>Arraste os arquivos aqui</strong>
+    <span>ou clique para escolher. Pode enviar vários de uma vez, até {{ max_mb }} MB cada.</span>
+  </label>
+  <noscript><button class="btn btn-primary" type="submit">Enviar</button></noscript>
+</form>
+
+<ol id="results" class="results" aria-live="polite">
+{% for r in results or [] %}
+  <li class="result result-{{ r.status }}">
+    <span class="result-file">{{ r.file }}</span>
+    <span class="result-msg">
+      {% if r.patient %}<a href="{{ r.patient_url or r.url }}">{{ r.patient }}</a>{% if r.eye %}, {{ r.eye|lower }}{% endif %}{% if r.date %}, {{ r.date }}{% endif %}. {% endif %}{{ r.message }}
+    </span>
+    {% if r.url %}<a class="btn btn-small" href="{{ r.url }}">Ver exame</a>{% endif %}
+  </li>
+{% endfor %}
+</ol>
+{% endblock %}
