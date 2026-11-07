@@ -1,0 +1,15 @@
+# Segredos
+.env
+
+# Dados de pacientes — NUNCA versionar (LGPD)
+*.qrp
+*.QRP
+*.pdf
+data/
+samples/
+
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.coverage

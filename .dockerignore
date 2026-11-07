@@ -1,0 +1,10 @@
+.git
+.env
+*.qrp
+*.QRP
+*.pdf
+data/
+samples/
+tests/
+__pycache__/
+.venv/
